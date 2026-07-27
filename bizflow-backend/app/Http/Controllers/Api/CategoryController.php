@@ -2,48 +2,77 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\DTOs\CategoryDTO;
+use App\Http\Controllers\Api\Base\BaseController;
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
+use App\Http\Resources\CategoryResource;
+use App\Models\Category;
+use App\Services\CategoryService;
 
-class CategoryController extends Controller
+class CategoryController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct(
+        protected CategoryService $service
+    ) {}
+
     public function index()
     {
-        //
+        return $this->success(
+            CategoryResource::collection(
+                $this->service->getAll()
+            ),
+            'Categories retrieved successfully'
+        );
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
-        //
+        $category = $this->service->create(
+            CategoryDTO::fromArray(
+                $request->validated()
+            )
+        );
+
+        return $this->success(
+            new CategoryResource($category),
+            'Category created successfully',
+            201
+        );
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(Category $category)
     {
-        //
+        return $this->success(
+            new CategoryResource($category),
+            'Category retrieved successfully'
+        );
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
+    public function update(
+        UpdateCategoryRequest $request,
+        Category $category
+    ) {
+        $category = $this->service->update(
+            $category,
+            CategoryDTO::fromArray(
+                $request->validated()
+            )
+        );
+
+        return $this->success(
+            new CategoryResource($category),
+            'Category updated successfully'
+        );
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(Category $category)
     {
-        //
+        $this->service->delete($category);
+
+        return $this->success(
+            null,
+            'Category deleted successfully'
+        );
     }
 }
