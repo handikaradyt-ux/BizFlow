@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
+import AuthLayout from '../../layouts/AuthLayout';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -29,8 +30,8 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
-            <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8 border border-gray-200">
+        <AuthLayout title="BizFlow POS">
+            <div className="w-full bg-white rounded-lg shadow-md p-8 border border-gray-200">
                 <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Login to BizFlow</h2>
                 
                 {error && (
@@ -71,7 +72,7 @@ const LoginPage = () => {
                     </button>
                 </form>
             </div>
-        </div>
+        </AuthLayout>
     );
 };
 
