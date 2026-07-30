@@ -11,6 +11,13 @@ import DashboardLayout from '../layouts/DashboardLayout';
 // Pages
 import LoginPage from '../pages/auth/LoginPage';
 import DashboardPage from '../pages/dashboard/DashboardPage';
+import ProductsPage from '../pages/products/ProductsPage';
+import CategoriesPage from '../pages/categories/CategoriesPage';
+import CustomersPage from '../pages/customers/CustomersPage';
+import TransactionsPage from '../pages/transactions/TransactionsPage';
+import ReportsPage from '../pages/reports/ReportsPage';
+import SettingsPage from '../pages/settings/SettingsPage';
+import ProfilePage from '../pages/profile/ProfilePage';
 
 const AppRoutes = () => {
     const { fetchUser } = useAuthStore();
@@ -35,15 +42,19 @@ const AppRoutes = () => {
                     <Route element={<DashboardLayout />}>
                         {/* Nested Dashboard Pages */}
                         <Route path="/dashboard" element={<DashboardPage />} />
+                        <Route path="/products" element={<ProductsPage />} />
+                        <Route path="/categories" element={<CategoriesPage />} />
+                        <Route path="/customers" element={<CustomersPage />} />
+                        <Route path="/transactions" element={<TransactionsPage />} />
+                        <Route path="/reports" element={<ReportsPage />} />
+                        <Route path="/profile" element={<ProfilePage />} />
+                        
                         <Route path="/" element={<Navigate to="/dashboard" replace />} />
                         
                         {/* Admin Routes - only accessible if role === 'admin' */}
                         <Route element={<RoleGuard allowedRoles={['admin']} />}>
-                            {/* Example admin route */}
-                            <Route path="/settings" element={<div className="p-6">Admin Settings Page Placeholder</div>} />
+                            <Route path="/settings" element={<SettingsPage />} />
                         </Route>
-
-                        {/* Future routes (products, categories, transactions, etc.) will go here */}
                     </Route>
                 </Route>
                 
