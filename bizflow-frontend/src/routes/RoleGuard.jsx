@@ -15,8 +15,8 @@ const RoleGuard = ({ allowedRoles }) => {
     // Check if the current user's role is included in the allowedRoles array
     const hasRole = user && allowedRoles.includes(user.role);
     
-    // If they have permission, let them through. If not, bounce them back to the dashboard.
-    return hasRole ? <Outlet /> : <Navigate to="/dashboard" replace />;
+    // If they have permission, let them through. If not, bounce them to the 403 page.
+    return hasRole ? <Outlet /> : <Navigate to="/403" replace />;
 };
 
 export default RoleGuard;

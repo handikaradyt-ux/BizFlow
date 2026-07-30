@@ -38,8 +38,12 @@ const useAuthStore = create((set, get) => ({
 
         try {
             const response = await api.get('/user');
+            
+            // Automatically detect and use the correct object depending on the Laravel response wrapper
+            const userData = response.data?.data ? response.data.data : response.data;
+
             set({ 
-                user: response.data, 
+                user: userData, 
                 isAuthenticated: true, 
                 isLoading: false,
                 isInitialized: true 

@@ -18,6 +18,8 @@ import TransactionsPage from '../pages/transactions/TransactionsPage';
 import ReportsPage from '../pages/reports/ReportsPage';
 import SettingsPage from '../pages/settings/SettingsPage';
 import ProfilePage from '../pages/profile/ProfilePage';
+import NotFoundPage from '../pages/errors/NotFoundPage';
+import UnauthorizedPage from '../pages/errors/UnauthorizedPage';
 
 const AppRoutes = () => {
     const { fetchUser } = useAuthStore();
@@ -58,8 +60,12 @@ const AppRoutes = () => {
                     </Route>
                 </Route>
                 
+                {/* Error Pages */}
+                <Route path="/404" element={<NotFoundPage />} />
+                <Route path="/403" element={<UnauthorizedPage />} />
+                
                 {/* Catch all fallback */}
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                <Route path="*" element={<Navigate to="/404" replace />} />
             </Routes>
         </BrowserRouter>
     );

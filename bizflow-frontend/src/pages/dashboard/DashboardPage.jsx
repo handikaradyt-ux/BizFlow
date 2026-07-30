@@ -1,5 +1,8 @@
 import useAuthStore from '../../store/authStore';
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
+import { Card, CardHeader, CardContent } from '../../components/ui/Card';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { Button } from '../../components/ui/Button';
+
 import { 
     Package, 
     Tags, 
@@ -29,15 +32,11 @@ const DashboardPage = () => {
 
     return (
         <div className="space-y-6">
-            {/* SECTION 1: Welcome message */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h1 className="text-2xl font-bold text-gray-800 mb-2 tracking-tight">
-                    Welcome back, {user?.name || 'Administrator'}!
-                </h1>
-                <p className="text-gray-600">
-                    Here is what's happening with your business today.
-                </p>
-            </div>
+            <PageHeader 
+                title={`Welcome back, ${user?.name || 'Administrator'}!`}
+                subtitle="Here is what's happening with your business today."
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+            />
 
             {/* SECTION 2: Statistic cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -68,61 +67,46 @@ const DashboardPage = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left Column (Spans 2/3 on large screens) */}
+                {/* Left Column */}
                 <div className="lg:col-span-2 space-y-6">
-                    {/* SECTION 3: Chart Placeholders */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Sales Overview</CardTitle>
-                            </CardHeader>
+                            <CardHeader title="Sales Overview" />
                             <CardContent className="h-64 flex items-center justify-center bg-gray-50 m-4 mt-0 rounded border border-dashed border-gray-300">
                                 <p className="text-gray-500 font-medium">Chart will be implemented later</p>
                             </CardContent>
                         </Card>
                         
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Revenue Trend</CardTitle>
-                            </CardHeader>
+                            <CardHeader title="Revenue Trend" />
                             <CardContent className="h-64 flex items-center justify-center bg-gray-50 m-4 mt-0 rounded border border-dashed border-gray-300">
                                 <p className="text-gray-500 font-medium">Chart will be implemented later</p>
                             </CardContent>
                         </Card>
                     </div>
 
-                    {/* SECTION 5: Quick Actions */}
                     <Card>
-                        <CardHeader>
-                            <CardTitle>Quick Actions</CardTitle>
-                        </CardHeader>
+                        <CardHeader title="Quick Actions" />
                         <CardContent className="flex flex-wrap gap-4">
-                            <button className="flex items-center px-4 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium">
-                                <Plus size={18} className="mr-2" />
+                            <Button icon={Plus} className="bg-blue-600 text-white hover:bg-blue-700">
                                 Add Product
-                            </button>
-                            <button className="flex items-center px-4 py-2.5 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors font-medium">
-                                <UserPlus size={18} className="mr-2" />
+                            </Button>
+                            <Button icon={UserPlus} className="bg-emerald-600 text-white hover:bg-emerald-700">
                                 Add Customer
-                            </button>
-                            <button className="flex items-center px-4 py-2.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors font-medium">
-                                <Banknote size={18} className="mr-2" />
+                            </Button>
+                            <Button icon={Banknote} className="bg-purple-600 text-white hover:bg-purple-700">
                                 New Transaction
-                            </button>
+                            </Button>
                         </CardContent>
                     </Card>
                 </div>
 
-                {/* Right Column (Spans 1/3 on large screens) */}
+                {/* Right Column */}
                 <div className="lg:col-span-1">
-                    {/* SECTION 4: Recent Activities */}
                     <Card className="h-full">
-                        <CardHeader>
-                            <CardTitle>Recent Activities</CardTitle>
-                        </CardHeader>
+                        <CardHeader title="Recent Activities" />
                         <CardContent>
                             <div className="space-y-6">
-                                {/* Dummy Activity 1 */}
                                 <div className="flex relative">
                                     <div className="w-2.5 h-2.5 mt-1 rounded-full bg-blue-500 absolute -left-[5px]"></div>
                                     <div className="border-l-2 border-gray-200 pl-4 pb-2 ml-0">
@@ -131,8 +115,6 @@ const DashboardPage = () => {
                                         <p className="text-xs text-gray-400 mt-1.5 font-medium">10 mins ago</p>
                                     </div>
                                 </div>
-                                
-                                {/* Dummy Activity 2 */}
                                 <div className="flex relative">
                                     <div className="w-2.5 h-2.5 mt-1 rounded-full bg-emerald-500 absolute -left-[5px]"></div>
                                     <div className="border-l-2 border-gray-200 pl-4 pb-2 ml-0">
@@ -141,8 +123,6 @@ const DashboardPage = () => {
                                         <p className="text-xs text-gray-400 mt-1.5 font-medium">2 hours ago</p>
                                     </div>
                                 </div>
-                                
-                                {/* Dummy Activity 3 */}
                                 <div className="flex relative">
                                     <div className="w-2.5 h-2.5 mt-1 rounded-full bg-purple-500 absolute -left-[5px]"></div>
                                     <div className="border-l-2 border-transparent pl-4 pb-0 ml-0">
