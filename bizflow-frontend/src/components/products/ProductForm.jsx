@@ -14,7 +14,8 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
     const [categories, setCategories] = useState([]);
     const [imagePreview, setImagePreview] = useState(product?.image_url || null);
     
-    const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, watch } = useForm({
+    const { register, handleSubmit, setError, setFocus, formState: { errors, isSubmitting }, setValue, watch } = useForm({
+        mode: 'onChange',
         defaultValues: {
             name: product?.name || '',
             sku: product?.sku || '',
@@ -88,7 +89,27 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
             onSuccess();
         } catch (error) {
             console.error("Failed to save product", error);
-            // Instruction: Do NOT implement inline backend validation handling
+            
+            // Handle Laravel 422 Validation Errors
+            if (error.response && error.response.status === 422) {
+                const backendErrors = error.response.data.errors;
+                if (backendErrors) {
+                    let firstField = null;
+                    
+                    Object.keys(backendErrors).forEach((field) => {
+                        if (!firstField) firstField = field;
+                        
+                        setError(field, {
+                            type: 'server',
+                            message: backendErrors[field][0]
+                        });
+                    });
+                    
+                    if (firstField) {
+                        setFocus(firstField);
+                    }
+                }
+            }
         }
     };
 
