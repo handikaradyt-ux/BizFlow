@@ -8,7 +8,7 @@ use Illuminate\Validation\Rule;
 class UpdateCategoryRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized.
+     * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
@@ -16,7 +16,9 @@ class UpdateCategoryRequest extends FormRequest
     }
 
     /**
-     * Validation rules.
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -26,14 +28,10 @@ class UpdateCategoryRequest extends FormRequest
             'name' => [
                 'required',
                 'string',
-                'max:150',
+                'max:100',
                 Rule::unique('categories', 'name')->ignore($category)
             ],
-
-            'description' => [
-                'nullable',
-                'string'
-            ]
+            'description' => ['nullable', 'string'],
         ];
     }
 }
