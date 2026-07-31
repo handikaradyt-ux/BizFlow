@@ -24,5 +24,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('products', ProductController::class);
     Route::apiResource('transactions', TransactionController::class);
+    Route::get('transactions/{transaction}/invoice', [TransactionController::class, 'invoice'])
+        ->name('transactions.invoice');
 
 });

@@ -11,6 +11,16 @@ class Transaction extends Model
 {
     use HasFactory;
 
+    // Valid status transitions map: current status => allowed next statuses
+    public const STATUS_TRANSITIONS = [
+        'pending'   => ['completed', 'cancelled'],
+        'completed' => ['refunded'],
+        'cancelled' => [],
+        'refunded'  => [],
+    ];
+
+    public const ALL_STATUSES = ['pending', 'completed', 'cancelled', 'refunded'];
+
     protected $fillable = [
         'customer_id',
         'user_id',
@@ -44,5 +54,15 @@ class Transaction extends Model
     public function transactionDetails(): HasMany
     {
         return $this->details();
+    }
+
+    /**
+     * Check whether transitioning to a new status is valid.
+     */
+    public function canTransitionTo(string $newStatus): bool
+    {
+        $allowed = self::STATUS_TRANSITIONS[$this->status] ?? [];
+
+        return in_array($newStatus, $allowed);
     }
 }
