@@ -15,50 +15,35 @@ class StoreProductRequest extends FormRequest
     }
 
     /**
-     * Validation rules.
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'category_id' => [
-                'required',
-                'exists:categories,id'
-            ],
+            'category_id' => ['required', 'exists:categories,id'],
+            'name' => ['required', 'string', 'max:150'],
+            'sku' => ['required', 'string', 'max:50', 'unique:products,sku'],
+            'description' => ['nullable', 'string'],
+            'selling_price' => ['required', 'numeric', 'min:0'],
+            'purchase_price' => ['nullable', 'numeric', 'min:0'],
+            'stock' => ['required', 'integer', 'min:0'],
+            'minimum_stock' => ['required', 'integer', 'min:0'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'status' => ['required', 'in:active,inactive'],
+        ];
+    }
 
-            'name' => [
-                'required',
-                'string',
-                'max:255'
-            ],
-
-            'sku' => [
-                'required',
-                'string',
-                'max:100',
-                'unique:products,sku'
-            ],
-
-            'price' => [
-                'required',
-                'numeric',
-                'min:0'
-            ],
-
-            'stock' => [
-                'required',
-                'integer',
-                'min:0'
-            ],
-
-            'image_path' => [
-                'nullable',
-                'string'
-            ],
-
-            'status' => [
-                'required',
-                'in:active,inactive'
-            ]
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'category_id.exists' => 'The selected category is invalid.',
+            'sku.unique' => 'This SKU is already in use by another product.',
+            'image.max' => 'The image must not be larger than 2MB.',
         ];
     }
 }

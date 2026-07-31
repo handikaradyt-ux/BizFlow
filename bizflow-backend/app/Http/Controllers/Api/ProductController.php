@@ -2,81 +2,91 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\DTOs\ProductDTO;
-use App\Http\Controllers\Api\Base\BaseController;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
-use App\Http\Resources\ProductResource;
 use App\Models\Product;
-use App\Services\ProductService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
-class ProductController extends BaseController
+class ProductController extends Controller
 {
-    public function __construct(
-        protected ProductService $service
-    ) {}
-
-    public function index()
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(): JsonResponse
     {
-        return $this->success(
-            ProductResource::collection(
-                $this->service->getAll()
-            ),
-            'Products retrieved successfully'
-        );
+        $products = Product::with('category')->get();
+        
+        // We will return JSON directly for now, ProductResource will be implemented later
+        return response()->json([
+            'success' => true,
+            'data' => $products
+        ]);
     }
 
-    public function store(StoreProductRequest $request)
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreProductRequest $request): JsonResponse
     {
-        $product = $this->service->create(
-            ProductDTO::fromArray(
-                $request->validated()
-            )
-        );
+        // Validation is completely handled by StoreProductRequest
+        $validated = $request->validated();
+        
+        // Image upload logic is excluded per instructions
+        
+        $product = Product::create($validated);
 
-        return $this->success(
-            new ProductResource($product->load('category')),
-            'Product created successfully',
-            201
-        );
+        return response()->json([
+            'success' => true,
+            'message' => 'Product created successfully.',
+            'data' => $product
+        ], 201);
     }
 
-    public function show(Product $product)
+    /**
+     * Display the specified resource.
+     */
+    public function show(Product $product): JsonResponse
     {
-        return $this->success(
-            new ProductResource(
-                $product->load('category')
-            ),
-            'Product retrieved successfully'
-        );
+        $product->load('category');
+        
+        return response()->json([
+            'success' => true,
+            'data' => $product
+        ]);
     }
 
-    public function update(
-        UpdateProductRequest $request,
-        Product $product
-    ) {
-        $product = $this->service->update(
-            $product,
-            ProductDTO::fromArray(
-                $request->validated()
-            )
-        );
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateProductRequest $request, Product $product): JsonResponse
+    {
+        // Validation is completely handled by UpdateProductRequest
+        $validated = $request->validated();
+        
+        // Image upload logic is excluded per instructions
+        
+        $product->update($validated);
 
-        return $this->success(
-            new ProductResource(
-                $product->load('category')
-            ),
-            'Product updated successfully'
-        );
+        return response()->json([
+            'success' => true,
+            'message' => 'Product updated successfully.',
+            'data' => $product
+        ]);
     }
 
-    public function destroy(Product $product)
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Product $product): JsonResponse
     {
-        $this->service->delete($product);
+        // Product uses SoftDeletes
+        $product->delete();
 
-        return $this->success(
-            null,
-            'Product deleted successfully'
-        );
+        return response()->json([
+            'success' => true,
+            'message' => 'Product deleted successfully.'
+        ], 200); // Or 204 No Content
     }
 }
