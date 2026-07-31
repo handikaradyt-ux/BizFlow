@@ -15,35 +15,17 @@ class StoreCustomerRequest extends FormRequest
     }
 
     /**
-     * Validation rules.
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-
-            'phone' => [
-                'required',
-                'string',
-                'max:20',
-                'unique:customers,phone',
-            ],
-
-            'email' => [
-                'nullable',
-                'email',
-                'max:255',
-                'unique:customers,email',
-            ],
-
-            'address' => [
-                'nullable',
-                'string',
-            ],
+            'name' => ['required', 'string', 'max:150'],
+            'phone' => ['required', 'string', 'max:20', 'unique:customers,phone'],
+            'email' => ['nullable', 'email'],
+            'address' => ['nullable', 'string'],
         ];
     }
 }

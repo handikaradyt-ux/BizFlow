@@ -16,37 +16,24 @@ class UpdateCustomerRequest extends FormRequest
     }
 
     /**
-     * Validation rules.
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         $customer = $this->route('customer');
 
         return [
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-
+            'name' => ['required', 'string', 'max:150'],
             'phone' => [
-                'required',
-                'string',
+                'required', 
+                'string', 
                 'max:20',
-                Rule::unique('customers', 'phone')->ignore($customer),
+                Rule::unique('customers', 'phone')->ignore($customer)
             ],
-
-            'email' => [
-                'nullable',
-                'email',
-                'max:255',
-                Rule::unique('customers', 'email')->ignore($customer),
-            ],
-
-            'address' => [
-                'nullable',
-                'string',
-            ],
+            'email' => ['nullable', 'email'],
+            'address' => ['nullable', 'string'],
         ];
     }
 }

@@ -14,6 +14,7 @@ import DashboardPage from '../pages/dashboard/DashboardPage';
 import ProductsPage from '../pages/products/ProductsPage';
 import CategoriesPage from '../pages/categories/CategoriesPage';
 import CustomersPage from '../pages/customers/CustomersPage';
+import CustomerDetailPage from '../pages/customers/CustomerDetailPage';
 import TransactionsPage from '../pages/transactions/TransactionsPage';
 import ReportsPage from '../pages/reports/ReportsPage';
 import SettingsPage from '../pages/settings/SettingsPage';
@@ -47,6 +48,7 @@ const AppRoutes = () => {
                         <Route path="/products" element={<ProductsPage />} />
                         <Route path="/categories" element={<CategoriesPage />} />
                         <Route path="/customers" element={<CustomersPage />} />
+                        <Route path="/customers/:id" element={<CustomerDetailPage />} />
                         <Route path="/transactions" element={<TransactionsPage />} />
                         <Route path="/reports" element={<ReportsPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
