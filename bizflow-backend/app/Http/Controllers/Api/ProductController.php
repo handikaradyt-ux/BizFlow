@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -18,9 +19,64 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
-        $products = Product::with('category')->get();
+        $query = Product::with('category');
+
+        // 1. Search
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $search = $request->input('search');
+            $q->where(function ($subQ) use ($search) {
+                $subQ->where('name', 'like', "%{$search}%")
+                     ->orWhere('sku', 'like', "%{$search}%");
+            });
+        });
+
+        // 2. Category Filter
+        $query->when($request->filled('category_id'), function ($q) use ($request) {
+            $q->where('category_id', $request->input('category_id'));
+        });
+
+        // 3. Status Filter
+        $query->when($request->filled('status'), function ($q) use ($request) {
+            $q->where('status', $request->input('status'));
+        });
+
+        // 4. Stock Range
+        $query->when($request->filled('stock_min'), function ($q) use ($request) {
+            $q->where('stock', '>=', $request->input('stock_min'));
+        });
+        
+        $query->when($request->filled('stock_max'), function ($q) use ($request) {
+            $q->where('stock', '<=', $request->input('stock_max'));
+        });
+
+        // 5. Sorting
+        $allowedSortFields = ['name', 'selling_price', 'stock', 'created_at'];
+        $allowedDirections = ['asc', 'desc'];
+        
+        $sortBy = $request->input('sort_by', 'created_at');
+        $sortDirection = $request->input('sort_direction', 'desc');
+        
+        if (!in_array($sortBy, $allowedSortFields)) {
+            $sortBy = 'created_at';
+        }
+        
+        if (!in_array($sortDirection, $allowedDirections)) {
+            $sortDirection = 'desc';
+        }
+        
+        $query->orderBy($sortBy, $sortDirection);
+
+        // 6. Pagination
+        $perPage = (int) $request->input('per_page', 10);
+        if ($perPage > 100) {
+            $perPage = 100;
+        } elseif ($perPage < 1) {
+            $perPage = 10;
+        }
+        
+        $products = $query->paginate($perPage);
         
         return ProductResource::collection($products);
     }
