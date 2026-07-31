@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Transaction extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'customer_id',
         'user_id',
@@ -35,8 +36,13 @@ class Transaction extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function transactionDetails(): HasMany
+    public function details(): HasMany
     {
         return $this->hasMany(TransactionDetail::class);
+    }
+
+    public function transactionDetails(): HasMany
+    {
+        return $this->details();
     }
 }

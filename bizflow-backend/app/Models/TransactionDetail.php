@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class TransactionDetail extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'transaction_id',
         'product_id',
@@ -18,6 +19,7 @@ class TransactionDetail extends Model
     ];
 
     protected $casts = [
+        'quantity' => 'integer',
         'unit_price' => 'decimal:2',
         'line_total' => 'decimal:2',
     ];
