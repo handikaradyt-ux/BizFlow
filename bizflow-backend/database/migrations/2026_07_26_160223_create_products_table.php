@@ -20,12 +20,14 @@ return new class extends Migration
                 ->restrictOnDelete();
 
             $table->string('name', 150);
-
             $table->string('sku', 50)->unique();
+            $table->text('description')->nullable();
 
-            $table->decimal('price', 12, 2);
+            $table->decimal('selling_price', 15, 2);
+            $table->decimal('purchase_price', 15, 2)->nullable();
 
             $table->integer('stock')->default(0);
+            $table->integer('minimum_stock')->default(0);
 
             $table->string('image_path')->nullable();
 
@@ -35,7 +37,6 @@ return new class extends Migration
             ])->default('active');
 
             $table->timestamps();
-
             $table->softDeletes();
 
             $table->index('name');
