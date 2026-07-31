@@ -13,11 +13,10 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { productService } from '../../services/productService';
 import { ProductForm } from '../../components/products/ProductForm';
-import api from '../../services/api';
+import { CategoryFilter } from '../../components/categories/CategoryFilter';
 
 const ProductsPage = () => {
     const [products, setProducts] = useState([]);
-    const [categories, setCategories] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [actionError, setActionError] = useState(null);
@@ -55,15 +54,6 @@ const ProductsPage = () => {
         setPage(1);
     }, [debouncedSearch, categoryId, status]);
 
-    const fetchCategories = async () => {
-        try {
-            const res = await api.get('/categories');
-            setCategories(res.data?.data || res.data || []);
-        } catch (err) {
-            console.error("Failed to fetch categories", err);
-        }
-    };
-
     const fetchProducts = useCallback(async () => {
         setIsLoading(true);
         setError(null);
@@ -86,10 +76,6 @@ const ProductsPage = () => {
             setIsLoading(false);
         }
     }, [page, debouncedSearch, categoryId, status]);
-
-    useEffect(() => {
-        fetchCategories();
-    }, []);
 
     useEffect(() => {
         fetchProducts();
@@ -185,16 +171,11 @@ const ProductsPage = () => {
                                 />
                             </div>
                             
-                            <Select 
+                            <CategoryFilter 
                                 className="w-full sm:w-40" 
                                 value={categoryId} 
                                 onChange={(e) => setCategoryId(e.target.value)}
-                            >
-                                <option value="">All Categories</option>
-                                {categories.map(cat => (
-                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                ))}
-                            </Select>
+                            />
 
                             <Select 
                                 className="w-full sm:w-40"

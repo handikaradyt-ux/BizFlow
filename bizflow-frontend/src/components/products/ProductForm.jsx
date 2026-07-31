@@ -7,11 +7,10 @@ import { Select } from '../ui/Select';
 import { FormField } from '../ui/FormField';
 import { Button } from '../ui/Button';
 import { productService } from '../../services/productService';
-import api from '../../services/api';
+import { CategorySelect } from '../categories/CategorySelect';
 
 export const ProductForm = ({ product, onSuccess, onCancel }) => {
     const isEdit = !!product;
-    const [categories, setCategories] = useState([]);
     const [imagePreview, setImagePreview] = useState(product?.image_url || null);
     
     const { register, handleSubmit, setError, setFocus, formState: { errors, isSubmitting }, setValue, watch } = useForm({
@@ -31,24 +30,6 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
     });
 
     const selectedImage = watch('image');
-
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const res = await api.get('/categories');
-                setCategories(res.data?.data || res.data || []);
-            } catch (err) {
-                console.error("Failed to fetch categories. Using fallbacks.", err);
-                setCategories([
-                    { id: 1, name: 'Electronics' },
-                    { id: 2, name: 'Furniture' },
-                    { id: 3, name: 'Clothing' },
-                    { id: 4, name: 'Accessories' }
-                ]);
-            }
-        };
-        fetchCategories();
-    }, []);
 
     useEffect(() => {
         if (selectedImage && selectedImage.length > 0) {
@@ -132,15 +113,10 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
                     </FormField>
 
                     <FormField label="Category" error={errors.category_id?.message}>
-                        <Select 
+                        <CategorySelect 
                             {...register('category_id', { required: 'Category is required' })}
                             hasError={!!errors.category_id}
-                        >
-                            <option value="">Select Category</option>
-                            {categories.map(cat => (
-                                <option key={cat.id} value={cat.id}>{cat.name}</option>
-                            ))}
-                        </Select>
+                        />
                     </FormField>
 
                     <FormField label="Description">
