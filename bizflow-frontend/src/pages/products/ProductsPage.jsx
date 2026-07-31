@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Plus, Pencil, Trash2, PackageOpen, ImageOff } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, PackageOpen, ImageOff, RefreshCcw } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '../../components/ui/Card';
 import { Table, TableHeader, TableHead, TableRow, TableCell } from '../../components/ui/Table';
 import { Button } from '../../components/ui/Button';
@@ -7,30 +7,77 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { Input } from '../../components/ui/Input';
+import { Select } from '../../components/ui/Select';
 import { Modal } from '../../components/ui/Modal';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { productService } from '../../services/productService';
 import { ProductForm } from '../../components/products/ProductForm';
+import api from '../../services/api';
 
 const ProductsPage = () => {
     const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [actionError, setActionError] = useState(null);
     
     // Pagination state
     const [page, setPage] = useState(1);
     const [meta, setMeta] = useState(null);
     const perPage = 10;
     
+    // Filter state
+    const [search, setSearch] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [categoryId, setCategoryId] = useState('');
+    const [status, setStatus] = useState('');
+
     // Modal state
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
+
+    // Delete state
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(search);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [search]);
+
+    // Reset pagination on filter change
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedSearch, categoryId, status]);
+
+    const fetchCategories = async () => {
+        try {
+            const res = await api.get('/categories');
+            setCategories(res.data?.data || res.data || []);
+        } catch (err) {
+            console.error("Failed to fetch categories", err);
+        }
+    };
 
     const fetchProducts = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         try {
-            const data = await productService.getProducts({ page, per_page: perPage });
+            const params = { 
+                page, 
+                per_page: perPage 
+            };
+            
+            if (debouncedSearch) params.search = debouncedSearch;
+            if (categoryId) params.category_id = categoryId;
+            if (status) params.status = status;
+
+            const data = await productService.getProducts(params);
             setProducts(data.data);
             setMeta(data.meta);
         } catch (err) {
@@ -38,11 +85,23 @@ const ProductsPage = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [page]);
+    }, [page, debouncedSearch, categoryId, status]);
+
+    useEffect(() => {
+        fetchCategories();
+    }, []);
 
     useEffect(() => {
         fetchProducts();
     }, [fetchProducts]);
+
+    const handleResetFilters = () => {
+        setSearch('');
+        setDebouncedSearch('');
+        setCategoryId('');
+        setStatus('');
+        setPage(1);
+    };
 
     const handleAddClick = () => {
         setEditingProduct(null);
@@ -59,8 +118,32 @@ const ProductsPage = () => {
         fetchProducts();
     };
 
-    const getStatusVariant = (status) => {
-        if (status === 'active') return 'success';
+    const handleDeleteClick = (product) => {
+        setActionError(null);
+        setProductToDelete(product);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!productToDelete) return;
+        setIsDeleting(true);
+        setActionError(null);
+        
+        try {
+            await productService.deleteProduct(productToDelete.id);
+            setIsDeleteModalOpen(false);
+            setProductToDelete(null);
+            fetchProducts();
+        } catch (err) {
+            setActionError(err.response?.data?.message || 'Failed to delete product.');
+            setIsDeleteModalOpen(false);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const getStatusVariant = (prodStatus) => {
+        if (prodStatus === 'active') return 'success';
         return 'danger';
     };
 
@@ -79,30 +162,57 @@ const ProductsPage = () => {
                 subtitle="Manage all products in your inventory."
             />
 
-            {error && (
+            {(error || actionError) && (
                 <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 border border-red-200 rounded-lg" role="alert">
-                    <span className="font-medium">Error:</span> {error}
+                    <span className="font-medium">Error:</span> {error || actionError}
                 </div>
             )}
 
             <Card>
                 <CardContent noPadding>
                     {/* Action Bar */}
-                    <div className="flex flex-col sm:flex-row justify-between items-center p-5 border-b border-gray-100 gap-4">
-                        <div className="relative w-full sm:w-80">
-                            {/* Instruction: Do NOT implement search functionality */}
-                            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                <Search size={18} className="text-gray-400" />
+                    <div className="flex flex-col md:flex-row justify-between items-center p-5 border-b border-gray-100 gap-4">
+                        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto flex-1">
+                            <div className="relative w-full sm:w-64">
+                                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                    <Search size={18} className="text-gray-400" />
+                                </div>
+                                <Input 
+                                    placeholder="Search name or SKU..." 
+                                    className="pl-10"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                />
                             </div>
-                            <Input 
-                                placeholder="Search products (disabled)..." 
-                                className="pl-10"
-                                disabled
-                            />
+                            
+                            <Select 
+                                className="w-full sm:w-40" 
+                                value={categoryId} 
+                                onChange={(e) => setCategoryId(e.target.value)}
+                            >
+                                <option value="">All Categories</option>
+                                {categories.map(cat => (
+                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                ))}
+                            </Select>
+
+                            <Select 
+                                className="w-full sm:w-40"
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value)}
+                            >
+                                <option value="">All Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </Select>
+
+                            <Button variant="ghost" icon={RefreshCcw} onClick={handleResetFilters} title="Reset Filters" className="w-full sm:w-auto whitespace-nowrap">
+                                Reset
+                            </Button>
                         </div>
 
-                        <div className="flex items-center space-x-3 w-full sm:w-auto">
-                            <Button variant="primary" icon={Plus} className="w-full sm:w-auto" onClick={handleAddClick}>
+                        <div className="flex w-full md:w-auto">
+                            <Button variant="primary" icon={Plus} className="w-full md:w-auto whitespace-nowrap" onClick={handleAddClick}>
                                 Add Product
                             </Button>
                         </div>
@@ -116,7 +226,7 @@ const ProductsPage = () => {
                         <EmptyState 
                             icon={PackageOpen}
                             title="No products found"
-                            description="Get started by adding a new product to your inventory database."
+                            description={search || categoryId || status ? "Try adjusting your filters or search query." : "Get started by adding a new product to your inventory database."}
                             action={
                                 <Button variant="primary" icon={Plus} onClick={handleAddClick}>
                                     Add Product
@@ -163,7 +273,7 @@ const ProductsPage = () => {
                                             <Button variant="ghost" size="sm" className="p-1.5" title="Edit" onClick={() => handleEditClick(product)}>
                                                 <Pencil size={18} />
                                             </Button>
-                                            <Button variant="ghost" size="sm" className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50" title="Delete">
+                                            <Button variant="ghost" size="sm" className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50" title="Delete" onClick={() => handleDeleteClick(product)}>
                                                 <Trash2 size={18} />
                                             </Button>
                                         </TableCell>
@@ -214,6 +324,18 @@ const ProductsPage = () => {
                     onCancel={() => setIsFormOpen(false)} 
                 />
             </Modal>
+
+            <ConfirmDialog 
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                title="Delete Product"
+                description="Are you sure you want to delete this product? Deleting cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                isDestructive={true}
+                isLoading={isDeleting}
+            />
         </div>
     );
 };
