@@ -16,6 +16,7 @@ import CategoriesPage from '../pages/categories/CategoriesPage';
 import CustomersPage from '../pages/customers/CustomersPage';
 import CustomerDetailPage from '../pages/customers/CustomerDetailPage';
 import TransactionsPage from '../pages/transactions/TransactionsPage';
+import PosPage from '../pages/pos/PosPage';
 import ReportsPage from '../pages/reports/ReportsPage';
 import SettingsPage from '../pages/settings/SettingsPage';
 import ProfilePage from '../pages/profile/ProfilePage';
@@ -50,6 +51,7 @@ const AppRoutes = () => {
                         <Route path="/customers" element={<CustomersPage />} />
                         <Route path="/customers/:id" element={<CustomerDetailPage />} />
                         <Route path="/transactions" element={<TransactionsPage />} />
+                        <Route path="/pos" element={<PosPage />} />
                         <Route path="/reports" element={<ReportsPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
                         
