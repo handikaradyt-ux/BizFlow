@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\ReportController;
 
 Route::post('login', [AuthController::class, 'login']);
 
@@ -27,6 +28,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('dashboard/monthly-trends',       [DashboardController::class, 'monthlyTrends'])->name('dashboard.monthly-trends');
     Route::get('dashboard/recent-transactions',  [DashboardController::class, 'recentTransactions'])->name('dashboard.recent-transactions');
     Route::get('dashboard/low-stock',            [DashboardController::class, 'lowStock'])->name('dashboard.low-stock');
+
+    // Reports
+    Route::get('reports/revenue',         [ReportController::class, 'revenue'])->name('reports.revenue');
+    Route::get('reports/sales',           [ReportController::class, 'sales'])->name('reports.sales');
+    Route::get('reports/top-products',    [ReportController::class, 'topProducts'])->name('reports.top-products');
+    Route::get('reports/monthly-trend',   [ReportController::class, 'monthlyTrend'])->name('reports.monthly-trend');
+    Route::get('reports/daily',           [ReportController::class, 'daily'])->name('reports.daily');
 
     Route::apiResource('customers', CustomerController::class);
     Route::apiResource('categories', CategoryController::class);
