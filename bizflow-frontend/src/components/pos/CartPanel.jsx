@@ -10,7 +10,7 @@ const TAX_RATE = 0.10;
 
 const fmt = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
 
-export const CartPanel = ({ onCheckout }) => {
+export const CartPanel = ({ onCheckout, isSubmitting = false }) => {
     const { items, customerId, increaseQty, decreaseQty, removeItem, clearCart, setCustomer } = useCartStore();
     const [customers, setCustomers] = useState([]);
 
@@ -47,6 +47,7 @@ export const CartPanel = ({ onCheckout }) => {
                 <Select
                     value={customerId ?? ''}
                     onChange={(e) => setCustomer(e.target.value ? Number(e.target.value) : null)}
+                    disabled={isSubmitting}
                 >
                     <option value="">Walk-in Customer</option>
                     {customers.map((c) => (
@@ -86,7 +87,8 @@ export const CartPanel = ({ onCheckout }) => {
                                 <div className="flex items-center gap-1">
                                     <button
                                         onClick={() => decreaseQty(item.product.id)}
-                                        className="w-7 h-7 rounded-md border border-gray-300 bg-white text-gray-600 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                                        disabled={isSubmitting}
+                                        className="w-7 h-7 rounded-md border border-gray-300 bg-white text-gray-600 flex items-center justify-center hover:bg-gray-100 transition-colors disabled:opacity-50"
                                     >
                                         <Minus size={12} />
                                     </button>
@@ -95,7 +97,8 @@ export const CartPanel = ({ onCheckout }) => {
                                     </span>
                                     <button
                                         onClick={() => increaseQty(item.product.id)}
-                                        className="w-7 h-7 rounded-md border border-gray-300 bg-white text-gray-600 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                                        disabled={isSubmitting}
+                                        className="w-7 h-7 rounded-md border border-gray-300 bg-white text-gray-600 flex items-center justify-center hover:bg-gray-100 transition-colors disabled:opacity-50"
                                     >
                                         <Plus size={12} />
                                     </button>
@@ -104,7 +107,8 @@ export const CartPanel = ({ onCheckout }) => {
                                 {/* Remove button */}
                                 <button
                                     onClick={() => removeItem(item.product.id)}
-                                    className="text-red-400 hover:text-red-600 transition-colors"
+                                    disabled={isSubmitting}
+                                    className="text-red-400 hover:text-red-600 transition-colors disabled:opacity-50"
                                     title="Remove item"
                                 >
                                     <Trash2 size={14} />
@@ -139,6 +143,7 @@ export const CartPanel = ({ onCheckout }) => {
                             variant="ghost"
                             className="flex-1 text-sm"
                             onClick={clearCart}
+                            disabled={isSubmitting}
                         >
                             Clear Cart
                         </Button>
@@ -146,9 +151,10 @@ export const CartPanel = ({ onCheckout }) => {
                             variant="primary"
                             className="flex-1 text-sm"
                             onClick={onCheckout}
-                            disabled={!onCheckout}
+                            disabled={items.length === 0 || isSubmitting}
+                            isLoading={isSubmitting}
                         >
-                            Checkout
+                            {isSubmitting ? 'Processing...' : 'Checkout'}
                         </Button>
                     </div>
                 </div>

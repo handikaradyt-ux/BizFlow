@@ -2,13 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { Search, Plus, PackageOpen, ImageOff } from 'lucide-react';
 import { Input } from '../ui/Input';
 import { Badge } from '../ui/Badge';
-import { Button } from '../ui/Button';
 import { EmptyState } from '../ui/EmptyState';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { productService } from '../../services/productService';
 import useCartStore from '../../store/cartStore';
 
-export const ProductPicker = () => {
+export const ProductPicker = ({ refreshKey = 0 }) => {
     const [products, setProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -38,7 +37,7 @@ export const ProductPicker = () => {
 
     useEffect(() => {
         fetchProducts();
-    }, [fetchProducts]);
+    }, [fetchProducts, refreshKey]);
 
     const handleAdd = (product) => {
         if (product.status !== 'active') return;
