@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\ExportController;
 
 Route::post('login', [AuthController::class, 'login']);
 
@@ -35,6 +36,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('reports/top-products',    [ReportController::class, 'topProducts'])->name('reports.top-products');
     Route::get('reports/monthly-trend',   [ReportController::class, 'monthlyTrend'])->name('reports.monthly-trend');
     Route::get('reports/daily',           [ReportController::class, 'daily'])->name('reports.daily');
+
+    // Exports (PDF + Excel)
+    Route::get('reports/export/pdf',   [ExportController::class, 'pdf'])->name('reports.export.pdf');
+    Route::get('reports/export/excel', [ExportController::class, 'excel'])->name('reports.export.excel');
 
     Route::apiResource('customers', CustomerController::class);
     Route::apiResource('categories', CategoryController::class);
