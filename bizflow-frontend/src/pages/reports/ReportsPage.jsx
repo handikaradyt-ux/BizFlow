@@ -1,97 +1,157 @@
-import { BarChart3, TrendingUp, Users, ShoppingBag, Download, FileText, FileSpreadsheet } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
+import { useState, useEffect } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
+import { Button } from '../../components/ui/Button';
+import { Download, FileText, FileSpreadsheet } from 'lucide-react';
 
-const StatCard = ({ title, value, icon: Icon, colorClass }) => (
-    <Card>
-        <CardContent className="flex items-center justify-between p-6">
-            <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
-                <h4 className="text-3xl font-bold text-gray-900">{value}</h4>
-            </div>
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${colorClass}`}>
-                <Icon size={24} />
-            </div>
-        </CardContent>
-    </Card>
-);
+// Subcomponents
+import { ReportFilterBar } from '../../components/reports/ReportFilterBar';
+import { RevenueReportView } from '../../components/reports/views/RevenueReportView';
+import { SalesReportView } from '../../components/reports/views/SalesReportView';
+import { TopProductsView } from '../../components/reports/views/TopProductsView';
+import { MonthlyTrendView } from '../../components/reports/views/MonthlyTrendView';
+import { DailyReportView } from '../../components/reports/views/DailyReportView';
+
+// Services
+import { 
+    getRevenueReport, getSalesReport, getTopProductsReport, 
+    getMonthlyTrendReport, getDailyReport, exportPdf, exportExcel 
+} from '../../services/reportService';
 
 const ReportsPage = () => {
+    const [reportType, setReportType] = useState('revenue');
+    const [filters, setFilters] = useState({});
+    const [page, setPage] = useState(1);
+    
+    // Data states
+    const [data, setData] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [isExporting, setIsExporting] = useState(false);
+
+    // Fetch Data
+    useEffect(() => {
+        let isMounted = true;
+        const fetchData = async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                let result = null;
+                switch (reportType) {
+                    case 'revenue':
+                        result = await getRevenueReport(filters);
+                        break;
+                    case 'sales':
+                        result = await getSalesReport(filters, page, 15);
+                        break;
+                    case 'top-products':
+                        result = await getTopProductsReport(filters);
+                        break;
+                    case 'monthly-trend':
+                        result = await getMonthlyTrendReport();
+                        break;
+                    case 'daily':
+                        result = await getDailyReport(filters);
+                        break;
+                    default:
+                        break;
+                }
+                
+                if (isMounted) {
+                    setData(reportType === 'sales' ? result : result?.data);
+                }
+            } catch (err) {
+                if (isMounted) {
+                    setError(err);
+                    console.error('Failed to load report data', err);
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+            }
+        };
+
+        fetchData();
+
+        return () => { isMounted = false; };
+    }, [reportType, filters, page]);
+
+    // Reset pagination when filters change (only relevant for sales)
+    useEffect(() => {
+        setPage(1);
+    }, [filters, reportType]);
+
+    // Export Handlers
+    const handleExport = async (format) => {
+        setIsExporting(true);
+        try {
+            if (format === 'pdf') {
+                await exportPdf(reportType, filters);
+            } else {
+                await exportExcel(reportType, filters);
+            }
+        } catch (err) {
+            console.error(`Failed to export ${format.toUpperCase()}`, err);
+            alert(`Failed to export ${format.toUpperCase()}`);
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <PageHeader 
                 title="Reports" 
                 subtitle="Analytics and business performance metrics."
                 action={
-                    <Button variant="primary" icon={Download}>
-                        Export Data
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button 
+                            variant="outline" 
+                            icon={FileText} 
+                            onClick={() => handleExport('pdf')}
+                            disabled={isExporting || isLoading || error}
+                        >
+                            PDF
+                        </Button>
+                        <Button 
+                            variant="primary" 
+                            icon={FileSpreadsheet} 
+                            onClick={() => handleExport('excel')}
+                            disabled={isExporting || isLoading || error}
+                        >
+                            {isExporting ? 'Exporting...' : 'Excel'}
+                        </Button>
+                    </div>
                 }
             />
 
-            {/* Report Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard title="Total Sales" value="1,245" icon={ShoppingBag} colorClass="bg-blue-100 text-blue-600" />
-                <StatCard title="Revenue" value="Rp 84.5M" icon={TrendingUp} colorClass="bg-emerald-100 text-emerald-600" />
-                <StatCard title="Orders" value="384" icon={BarChart3} colorClass="bg-amber-100 text-amber-600" />
-                <StatCard title="Customers" value="218" icon={Users} colorClass="bg-purple-100 text-purple-600" />
-            </div>
+            <ReportFilterBar 
+                reportType={reportType}
+                setReportType={setReportType}
+                filters={filters}
+                setFilters={setFilters}
+            />
 
-            {/* Chart Placeholders */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                    <CardHeader title="Sales Over Time" />
-                    <CardContent className="h-72 flex items-center justify-center bg-gray-50 m-5 mt-0 rounded border border-dashed border-gray-300">
-                        <p className="text-gray-500 font-medium">Chart will be implemented later</p>
-                    </CardContent>
-                </Card>
-                
-                <Card>
-                    <CardHeader title="Top Selling Products" />
-                    <CardContent className="h-72 flex items-center justify-center bg-gray-50 m-5 mt-0 rounded border border-dashed border-gray-300">
-                        <p className="text-gray-500 font-medium">Chart will be implemented later</p>
-                    </CardContent>
-                </Card>
-            </div>
+            {/* Dynamic View Rendering */}
+            {reportType === 'revenue' && (
+                <RevenueReportView data={data} isLoading={isLoading} error={error} />
+            )}
             
-            {/* Recent Reports List */}
-            <Card>
-                <CardHeader title="Recent Reports" />
-                <CardContent>
-                    <div className="space-y-4">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors gap-4">
-                            <div className="flex items-center">
-                                <div className="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center mr-4 flex-shrink-0">
-                                    <FileText size={20} />
-                                </div>
-                                <div>
-                                    <h4 className="font-semibold text-gray-800">Monthly Sales Summary - July 2026</h4>
-                                    <p className="text-sm text-gray-500 mt-0.5">Generated on July 30, 2026</p>
-                                </div>
-                            </div>
-                            <Button variant="ghost" icon={Download} className="text-blue-600 hover:text-blue-800 w-full sm:w-auto">
-                                Download PDF
-                            </Button>
-                        </div>
-                        
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors gap-4">
-                            <div className="flex items-center">
-                                <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mr-4 flex-shrink-0">
-                                    <FileSpreadsheet size={20} />
-                                </div>
-                                <div>
-                                    <h4 className="font-semibold text-gray-800">Inventory Status Report</h4>
-                                    <p className="text-sm text-gray-500 mt-0.5">Generated on July 25, 2026</p>
-                                </div>
-                            </div>
-                            <Button variant="ghost" icon={Download} className="text-blue-600 hover:text-blue-800 w-full sm:w-auto">
-                                Download Excel
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+            {reportType === 'sales' && (
+                <SalesReportView data={data} isLoading={isLoading} error={error} page={page} setPage={setPage} />
+            )}
+            
+            {reportType === 'top-products' && (
+                <TopProductsView data={data} isLoading={isLoading} error={error} />
+            )}
+            
+            {reportType === 'monthly-trend' && (
+                <MonthlyTrendView data={data} isLoading={isLoading} error={error} />
+            )}
+            
+            {reportType === 'daily' && (
+                <DailyReportView data={data} isLoading={isLoading} error={error} />
+            )}
         </div>
     );
 };
