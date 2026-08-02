@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -95,6 +96,9 @@ class ProductController extends Controller
         $product = Product::create($validated);
         $product->load('category');
 
+        // Bust dashboard caches — product count and low-stock list may change
+        TransactionController::flushDashboardCache();
+
         return response()->json([
             'success' => true,
             'message' => 'Product created successfully.',
@@ -130,6 +134,9 @@ class ProductController extends Controller
         $product->update($validated);
         $product->load('category');
 
+        // Bust dashboard caches — stock / minimum_stock / status may have changed
+        TransactionController::flushDashboardCache();
+
         return response()->json([
             'success' => true,
             'message' => 'Product updated successfully.',
@@ -147,6 +154,9 @@ class ProductController extends Controller
         // Clear the image path in the database to reflect the actual storage state
         $product->update(['image_path' => null]);
         $product->delete();
+
+        // Bust dashboard caches — product count changes
+        TransactionController::flushDashboardCache();
 
         return response()->json([
             'success' => true,

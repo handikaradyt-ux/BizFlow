@@ -8,11 +8,34 @@ use App\Models\Product;
 use App\Models\Transaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class TransactionController extends Controller
 {
+    /**
+     * Flush all dashboard-related cache keys.
+     * Called after any write that affects dashboard metrics.
+     */
+    public static function flushDashboardCache(): void
+    {
+        Cache::forget('dashboard.summary');
+        Cache::forget('dashboard.monthly_trends');
+        Cache::forget('dashboard.low_stock.minimum_stock');
+
+        // Flush the per-limit recent-transaction cache keys (1–50)
+        for ($limit = 1; $limit <= 50; $limit++) {
+            Cache::forget("dashboard.recent_transactions.{$limit}");
+        }
+
+        // Flush any ?threshold=N low-stock cache entries
+        // Cache keys are dashboard.low_stock.{N}; clearing a broad range covers typical use
+        for ($threshold = 0; $threshold <= 100; $threshold++) {
+            Cache::forget("dashboard.low_stock.{$threshold}");
+        }
+    }
+
     /**
      * Store a newly created transaction in storage.
      */
@@ -67,7 +90,7 @@ class TransactionController extends Controller
             ];
         }
 
-        $tax       = round($subtotal * 0.10, 2);
+        $tax        = round($subtotal * 0.10, 2);
         $grandTotal = round($subtotal + $tax, 2);
 
         // 5. Execute ALL writes atomically inside DB::transaction()
@@ -113,7 +136,10 @@ class TransactionController extends Controller
             ], 500);
         }
 
-        // 6. Return success response
+        // 6. Invalidate all dashboard caches so metrics are immediately fresh
+        self::flushDashboardCache();
+
+        // 7. Return success response
         $transaction->load(['details.product', 'customer', 'user']);
 
         return response()->json([
@@ -145,6 +171,9 @@ class TransactionController extends Controller
         }
 
         $transaction->update(['status' => $newStatus]);
+
+        // Invalidate dashboard caches — status change affects summary, trends, and recent list
+        self::flushDashboardCache();
 
         return response()->json([
             'message' => 'Transaction status updated successfully.',
