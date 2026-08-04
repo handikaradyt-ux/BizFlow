@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,    // ProductSeeder depends on categories existing
             ProductSeeder::class,     // Depends on CategorySeeder
             CustomerSeeder::class,    // Independent
+            SettingSeeder::class,     // App settings — singleton row
         ]);
     }
 }

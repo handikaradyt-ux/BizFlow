@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ExportController;
+use App\Http\Controllers\Api\SettingController;
 
 Route::post('login', [AuthController::class, 'login']);
 
@@ -47,5 +48,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('transactions', TransactionController::class);
     Route::get('transactions/{transaction}/invoice', [TransactionController::class, 'invoice'])
         ->name('transactions.invoice');
+
+    // Settings (singleton)
+    Route::get('settings', [SettingController::class, 'show'])->name('settings.show');
+    Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
 
 });
